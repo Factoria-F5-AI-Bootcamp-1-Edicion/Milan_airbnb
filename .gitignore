@@ -1,3 +1,4 @@
 *.csv
 titanic_eda.ipynb
 Prueba.ipynb
+.ipynb_checkpoints/
