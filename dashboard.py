@@ -99,4 +99,4 @@ df_cat["number_of_reviews_cat"] = pd.cut(df["number_of_reviews"], bins, labels =
 fig5 = sns.catplot(data=df, x="number_of_reviews_cat", kind="count", hue="price_cut")
 st.pyplot(fig5)
 
-#que sigue
+#que sigue mas
