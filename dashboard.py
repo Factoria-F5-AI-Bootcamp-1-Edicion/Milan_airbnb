@@ -15,7 +15,10 @@ def load_data(path):
     return pd.read_csv(path)
 
 # Titulo del dashboard
-st.title("Viviendas Airbnb En Milan")
+st.title("Alojamientos Airbnb En Milan")
+
+#Descripción de lo analizado
+st.write("A continuación mostramos algunos gráficos y conclusiones que hemos podido extraer, con los datos proporcionados, sobre el alquiler de alojamientos en Milán a través de la APP AirBnB. El objetivo es encontrar patrones relevantes de cara al alquiler de viviendas con fines vacacionales.")
 
 # Cargar archivo csv
 df = load_data(PATH_DATA) 
@@ -30,11 +33,15 @@ alojamientos = df["name"]
 latiude = df["latitude"]
 longitude = df["longitude"]
 
+#Titulo de la tabla
 st.header("DataSet analizado")
+
+st.write("Las variables que encontramos en el Dataset son:")
 
 #Mostramos el DataSet
 st.write(df)
 
+#Titulo del grafico
 st.header("Precio por barrio")
 
 #Grafico de precio por barrio
@@ -45,7 +52,7 @@ plt.xticks(rotation=90)
 st.pyplot(fig1)
 
 #Markdown para gráfico de precio por barrio
-st.markdown("La mayoría de precios en todos los barrios rondan los 100€ la noche. En Baggio, Bruzzano, Cantalupa y Quintosole (barrios periféricos de Milán) los precios están por debajo de 50€ la noche. Como ecepción, en Cascina Triulza-Expo, los precios son muy altos")
+st.markdown("La mayoría de precios en todos los barrios rondan los 100€ la noche. En Baggio, Bruzzano, Cantalupa y Quintosole (barrios periféricos de Milán) los precios están por debajo de 50€ la noche. Como ecepción, en Cascina Triulza-Expo, los precios son muy altos.")
 
 st.header("Viviendas según tipo de alojamiento, por barrio")
 
@@ -55,7 +62,7 @@ plt.xticks(rotation=90)
 st.pyplot(fig2)
 
 #Markdown para gráfico de tipo de alojamiento por barrio
-st.markdown("Entire home/apt (vivienda completa/apartamento), en naranja, predomina como tipo de vivienda más presente en Milán. El segundo tipo de alojamiento más predominante es Private room y también se puede ver que los barrios con más alojamientos son: Buenos Aires - Venezia, Duomo y Navigli, barrios del centro de la ciudad. Los barrios con menos alojamientos se situan a las afueras de la ciudad como por ejemplo en: Cascina Triulza - Expo., mientras que los barrios con más alojamientos son los del centro ")
+st.markdown("Entire home/apt (vivienda completa/apartamento), en naranja, predomina como tipo de vivienda más presente en Milán. El segundo tipo de alojamiento más predominante es Private room y también se puede ver que los barrios con más alojamientos son: Buenos Aires - Venezia, Duomo y Navigli, barrios del centro de la ciudad. Los barrios con menos alojamientos se situan a las afueras de la ciudad como por ejemplo en: Cascina Triulza - Expo., mientras que los barrios con más alojamientos son los del centro.")
 
 
 #Agrupaciones por barrio para los siguientes graficos
@@ -89,7 +96,7 @@ sns.heatmap(df.corr(), mask=mask, vmax=1., vmin=-1., center=0, square=True, line
 st.pyplot(fig4)
 
 #Markdown para el mapa de calor
-st.markdown("No hay mucha relación entre las variables de este DataSet")
+st.markdown("No hay mucha relación entre las variables de este DataSet.")
 
 #Correlaciones
 #price_cleaned = df.drop(df[(df["price"] < 300)].index)
@@ -105,13 +112,13 @@ bins = [0,50,200,300,400,700,900]
 names = ['0-50','51-200','201-300',"301-400","401-700","701-900"]
 df_cat["number_of_reviews_cat"] = pd.cut(df["number_of_reviews"], bins, labels = names)
 
-st.header("Cantidad de viviendas según número de reviews y rangos de precios")
+st.header("Cantidad de viviendas según número de reviews y rangos de precios.")
 
 #Canidad de viviendas segun numero de reviews y rango de precios
 fig5 = sns.catplot(data=df, x="number_of_reviews_cat", kind="count", hue="price_cut")
 st.pyplot(fig5)
 
 #Markdown para cantidad de viviendas segun n de reviews y rango de precios
-st.markdown("Las viviendas que tienen mayor numero de reseñas son las viviendas de valor menor a 300 euros (10971) , las cuales tienen una cantidad de reseñas de 1 a 50, aunque hay 5062 viviendas que tienen 0 reseñas")
+st.markdown("Las viviendas que tienen mayor numero de reseñas son las viviendas de valor menor a 300 euros (10971) , las cuales tienen una cantidad de reseñas de 1 a 50, aunque hay 5062 viviendas que tienen 0 reseñas.")
 
 
