@@ -69,21 +69,21 @@ add_selectbox = st.sidebar.selectbox(
 df_barrios = df.drop_duplicates(subset=["neighbourhood"]) 
 add_selectbox = st.sidebar.selectbox(
     "¿En qué barrio quieres pernoctar?",
-     (df_barrios)
+     (df_barrios["neighbourhood"])
 )
-# # RADIO ELECCIÓN TIPO VIVIENDA
-# tipo = st.radio(
-#      "¿Qué tipo de alojamiento quieres?",
-#      ("Entire home/apt", "Private room", "Shared room ", "Hotel room"))
-# 
-# if tipo == "Entire home/apt":
-#      st.write("Has elegido Entire home/apt")
-# if tipo == "Private room":
-#      st.write("Has elegido Private room")
-# if tipo == "Shared room":
-#      st.write("Has elegido Shared room")     
-# if tipo == "Hotel room":
-#      st.write("Has elegido Hotel room")  
+# RADIO ELECCIÓN TIPO VIVIENDA
+tipo = st.sidebar.radio(
+     "¿Qué tipo de alojamiento quieres?",
+     ("Entire home/apt", "Private room", "Shared room ", "Hotel room"))
+
+if tipo == "Entire home/apt":
+     st.write("Has elegido Entire home/apt")
+if tipo == "Private room":
+     st.write("Has elegido Private room")
+if tipo == "Shared room":
+     st.write("Has elegido Shared room")     
+if tipo == "Hotel room":
+     st.write("Has elegido Hotel room")  
 
 # SUBTÍTULO
 st.header("Gráficos relevantes")
