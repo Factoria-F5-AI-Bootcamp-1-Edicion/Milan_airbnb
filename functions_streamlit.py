@@ -72,6 +72,39 @@ def data_cut(data, listLimit, listLabel, column, new_column):
 def count_values(column):
     return column.value_counts()
 
+def data_unique(data, column):
+    return np.unique(data[column]).tolist()
+
+# ------------------------- FILTROS --------------------------------------------------
+
+
+def group_by_metrics(aspect,attribute,measure, df_data):
+    df_return = pd.DataFrame()
+    if(measure == "Absolute"):
+        if(attribute == "pass_ratio" or attribute == "tackle_ratio" or attribute == "possession"):
+            measure = "Mean"
+        else:
+            df_return = df_data.groupby([aspect]).sum()            
+    
+    if(measure == "Mean"):
+        df_return = df_data.groupby([aspect]).mean()
+        
+    if(measure == "Median"):
+        df_return = df_data.groupby([aspect]).median()
+    
+    if(measure == "Minimum"):
+        df_return = df_data.groupby([aspect]).min()
+    
+    if(measure == "Maximum"):
+        df_return = df_data.groupby([aspect]).max()
+    df_return["aspect"] = df_return.index
+    if aspect == "team":
+        df_return = df_return.sort_values(by=[attribute], ascending = False)
+    return df_return
+    
+def filter_price(data):
+    pass
+
 
 # ------------------------- GRAFICOS --------------------------------------------------
 
