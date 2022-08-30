@@ -7,5 +7,5 @@
 
 
 <p align="center">
-  <img src="Airbnb_uffici-di-design-arredati-lago.jpg" width="350" title="hover text">
+  <img src="Airbnb_uffici-di-design-arredati-lago.jpg" width="450" title="hover text">
 </p>
