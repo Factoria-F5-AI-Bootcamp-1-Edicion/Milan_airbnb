@@ -23,14 +23,15 @@ import branca.colormap as cm
 def load_data(path):
     return pd.read_csv(path) 
 
-def load_map(df):
-    latitude = df["latitude"].mean()
-    longitude = df["longitude"].mean()
-    mapar = folium.Map(location=[latitude, longitude], zoom_start=12) 
-    return mapar
+# Informacion de las variables
+def info_var(tipo,data):
+    for col in tipo:
+        print(f"Column name: {col}")
+        print(data[col].value_counts())
+        print()
 
-# Se añaden los puntos de interés (Con CircleMarker añade circulos de tamaño fijo)
-# y con MarKer se añaden marcadores
+
+#------------------------AGRUPACIONES --------------------------
 def get_barrios(data):
     group = data.groupby(["neighbourhood"])['latitude','longitude','price'].agg('mean')
     data_new = pd.DataFrame(group)
@@ -42,13 +43,43 @@ def get_groupby_number_barrio(data):
     data2=pd.DataFrame(group2)
     return data2
 
-def format(*args):
-    value = 0
-    for n in args:
-        value += str(n)
-        value += '\n'
-    return value
+# TODO: Implementar estadistica descriptiva basica a variables numericas del dataset
+def group_by_metrics(aspect,attribute,measure, df_data):
+    df_return = pd.DataFrame()
+    if(measure == "Absolute"):
+        if(attribute == "pass_ratio" or attribute == "tackle_ratio" or attribute == "possession"):
+            measure = "Mean"
+        else:
+            df_return = df_data.groupby([aspect]).sum()            
+    
+    if(measure == "Mean"):
+        df_return = df_data.groupby([aspect]).mean()
+        
+    if(measure == "Median"):
+        df_return = df_data.groupby([aspect]).median()
+    
+    if(measure == "Minimum"):
+        df_return = df_data.groupby([aspect]).min()
+    
+    if(measure == "Maximum"):
+        df_return = df_data.groupby([aspect]).max()
+    df_return["aspect"] = df_return.index
+    if aspect == "team":
+        df_return = df_return.sort_values(by=[attribute], ascending = False)
+    return df_return
 
+
+# ------------------------------------ MAPA INTERACTIVO DE LIBRERIA FOLIUM -----------------------------
+
+# Carga de mapa de milan con media de la longitud y latitud de todas las viviendas 
+def load_map(df):
+    latitude = df["latitude"].mean()
+    longitude = df["longitude"].mean()
+    mapar = folium.Map(location=[latitude, longitude], zoom_start=12) 
+    return mapar
+
+# Se añaden los puntos de interés (Con CircleMarker añade circulos de tamaño fijo)
+# y con MarKer se añaden marcadores
 def load_datamap(df, mapa):
     datalat_long= get_barrios(df)
     datan = get_groupby_number_barrio(df)
@@ -68,14 +99,7 @@ def load_datamap(df, mapa):
         folium.Marker([latitud, longitud],tooltip = titulo, popup=info, icon=icono).add_to(mapa)
     #Leyenda del mapa
     
-
-# Informacion de las variables
-def info_var(tipo,data):
-    for col in tipo:
-        print(f"Column name: {col}")
-        print(data[col].value_counts())
-        print()
-# -------------------------MAPAS ---------------------------------------------
+# Mapa de calor a insertar en el mapa
 def heatmap_map(mapa,data):
     fig = Figure(width=600, height=400)
     fig.add_child(mapa)
@@ -85,6 +109,8 @@ def heatmap_map(mapa,data):
             blur = 25,   
         )
     heatmap.add_to(mapa)
+
+
 # ------------------------- TRATAMIENTOS DE DATOS --------------------------------------------------
 
 def prepare_data(data):
@@ -116,11 +142,13 @@ def count_values(column):
 def data_unique(data, column):
     return np.unique(data[column]).tolist()
 
+
 # ------------------------- FILTROS --------------------------------------------------
 
+#TODO: Implentar filtro 
 def filter_typeroom(data):
     tipo = st.sidebar.radio(
-        "¿Qué tipo de alojamiento quieres?",
+        "¿Tipo de alojamiento?",
         ("Ninguno","Entire home/apt", "Private room", "Shared room", "Hotel room"))
     if tipo == "Entire home/apt":
         return data[(data["room_type"] == "Entire home/apt" )]
@@ -132,56 +160,56 @@ def filter_typeroom(data):
         return data[(data["room_type"] == "Hotel room" )]
     if tipo == "Ninguno":
         return data
+#Filtro para datos de columnas de variable de tipo numerico en funcion de limites maximo y minimo pasados por parametros   
+def filter_per_minmax(data, min,max,column):
+    return data[(data[column] >= min) & (data[column] <=max)]
 
-def group_by_metrics(aspect,attribute,measure, df_data):
-    df_return = pd.DataFrame()
-    if(measure == "Absolute"):
-        if(attribute == "pass_ratio" or attribute == "tackle_ratio" or attribute == "possession"):
-            measure = "Mean"
-        else:
-            df_return = df_data.groupby([aspect]).sum()            
-    
-    if(measure == "Mean"):
-        df_return = df_data.groupby([aspect]).mean()
-        
-    if(measure == "Median"):
-        df_return = df_data.groupby([aspect]).median()
-    
-    if(measure == "Minimum"):
-        df_return = df_data.groupby([aspect]).min()
-    
-    if(measure == "Maximum"):
-        df_return = df_data.groupby([aspect]).max()
-    df_return["aspect"] = df_return.index
-    if aspect == "team":
-        df_return = df_return.sort_values(by=[attribute], ascending = False)
-    return df_return
-    
-def filter_price(data):
-    pass
 
 # ------------------------- MENU LATERAL --------------------------------------------------
 
 def menu_lateral(data, tipo, data_map, df_cat):
+    if tipo == "Informacion":
+        if st.checkbox('Ver mapa de correlaciones'):
+            st.header("Mapa de calor, correlaciones")
+            heat_map(data)
+            st.markdown("No hay mucha relación entre las variables de este DataSet.")
+    st.header("Hipotesis")
 
+    st.components.v1.html(f"""
+    <ul>
+    <li> El barrio influye en el precio?</li>
+    <li> Cuales son los tipos de alojamientos mas alquilados?</li>
+    <li> El numero de hospedados tiene relacion con el tipo de vivienda?</li>
+    <li> Cuales son las fechas de mayor alquiler?</li>
+    <li> Las viviendas mas caras son las que tienen mas reseñas?</li>
+    </ul>""", height = 150
+    )
+    st.header("Conclusiones")
+    st.components.v1.html(f"""
+    <h3><ol>
+    <li> Los barrios con más actividad serían los localizados en el centro de la ciudad
+    con un precio medio por debajo de 50 euros, donde también están los más caros. </li>
+    <li>El tipo de alojamiento más ofertado es el de los apartamentos completos.</li>
+    <li>Al principio teníamos un concepto diferente del "calculated_host_listings_count". Ahora ya sabemos que es el número de alojamientos del mismo dueño</li>
+    <li> La calidad de los datos no nos permiten resolver esta hipótesis de las fechas de mayor alquiler<li>
+    </ol></h3>""",height = 300
+    )
     if tipo == "Mostrar graficos":
+        st.header("Distribucion de precios")
+        hist_price(data)
+        st.markdown("Se ha decidido a analizar un rango de precios hasta 300 euros por ser donde se concentra la mayor cantidad de viviendas (17454 de las 18322 viviendas totales).")
         st.header("Precio por barrio")     
         show_barrio(data)
-        st.markdown("La mayoría de precios en todos los barrios rondan los 100€ la noche. En Baggio, Bruzzano, Cantalupa y Quintosole (barrios periféricos de Milán) los precios están por debajo de 50€ la noche.Como ecepción, en Cascina Triulza-Expo, los precios son muy altos.")
+        st.markdown("La media de precios ronda los 85 euros por noche. En los barrios Baggio, Bruzzano, Cantalupa y Quintosole (barrios periféricos de Milán) los precios están por debajo de 50€ la noche. Como excepción, en el barrio periférico de  Cascina Triulza-Expo, el precio de las viviendas supera los 200 euros.")
         st.header("Viviendas según tipo de alojamiento, por barrio")
-        hist_price(data)
+        show_typeroom(data)
         st.markdown("Entire home/apt (vivienda completa/apartamento), en naranja, predomina como tipo de vivienda más presente en Milán. El segundo tipo de alojamiento más predominante es Private room y también se puede ver que los barrios con más alojamientos son: Buenos Aires - Venezia, Duomo y Navigli, barrios del centro de la ciudad. Los barrios con menos alojamientos se situan a las afueras de la ciudad como por ejemplo en: Cascina Triulza - Expo., mientras que los barrios con más alojamientos son los del centro.")
         st.header("Disponibilidad de los 10 barrios con más reviews")
         show_barriosreviews(df_cat)
         st.markdown("Vemos entonces que los barrios con más reviews tienen una disponibilidad media por debajo de los 175 días.")
         st.header("Cantidad de viviendas según número de reviews y rangos de precios.")
         show_reviewsprice(df_cat)
-        st.markdown("Las viviendas que tienen mayor numero de reseñas son las viviendas de valor menor a 300 euros (10971) , las cuales tienen una cantidad de reseñas de 1 a 50, aunque hay 5062 viviendas que tienen 0 reseñas.")
-        st.header("Mapa de calor, correlaciones")
-        heat_map(data)
-        st.markdown("No hay mucha relación entre las variables de este DataSet.")
-
-        
+        st.markdown("Las viviendas que tienen mayor numero de reseñas son las viviendas de valor menor a 300 euros (10971) , las cuales tienen una cantidad de reseñas de 1 a 50, aunque hay 5062 viviendas que tienen 0 reseñas.")  
     if tipo == "Mostrar mapa":
        #Cargar mapa
         mapa = load_map(data_map)
@@ -190,6 +218,8 @@ def menu_lateral(data, tipo, data_map, df_cat):
         #fs.load_datamap(data_map,mapa)
         # Renderizar mapa
         st_folium(mapa, width=800)
+
+
 # ------------------------- GRAFICOS --------------------------------------------------
 
 def show_priceneig(df):
@@ -233,11 +263,11 @@ def show_barriosreviews(df_dispo_review):
 
 # TODO: CORREGIR ERROR AL CARGAR VISUALIZACION
 def heat_map(data):
-    mask = np.triu(np.ones_like(data.corr(), dtype=bool))
+    mask = np.triu(np.ones_like(data.corr(method= 'kendall'), dtype=bool))
     fig4, ax = plt.subplots(figsize=(11, 9))
-    sns.heatmap(data.corr(), mask=mask, vmax=1., vmin=-1., center=0, square=True, linewidths=.5, cbar_kws={"shrink": .5}, annot=True)
+    sns.heatmap(data.corr(method= 'kendall'), mask=mask, vmax=1., vmin=-1., center=0, square=True, linewidths=.5, cbar_kws={"shrink": .5}, annot=True)
     st.pyplot(fig4)
-# TODO: CORREGIR ERROR AL CARGAR VISUALIZACION
+
 def price_dist(data):
     f =stats.probplot(data["price"], dist="norm", plot=pylab)
     fig = plt.figure()
@@ -246,6 +276,21 @@ def price_dist(data):
 
 def show_barrio(dataf):
     fig, ax = plt.subplots(ncols=1, figsize=(18,7))
+    filtro =  st.radio(
+     "Ingrese rango de precios a filtrar",
+     ("0-25","25-50", "50-75","75-100","100-150","150-300"))
+    if filtro == "0-25":
+        dataf = filter_per_minmax(dataf,0,25,'price')
+    elif filtro == "25-50":
+        dataf =filter_per_minmax(dataf,26,50,'price')
+    elif filtro == "50-75":
+        dataf =filter_per_minmax(dataf,51,75,'price')
+    elif filtro == "75-100":
+        dataf =filter_per_minmax(dataf,76,100,'price')
+    elif filtro == "100-150":
+        dataf =filter_per_minmax(dataf,101,150,'price')
+    elif filtro == "150-300":
+        dataf =filter_per_minmax(dataf,151,300,'price')
     sns.set_theme(style="whitegrid")
     ax = sns.barplot(x="neighbourhood", y="price", data=dataf)
     plt.xticks(rotation=90)

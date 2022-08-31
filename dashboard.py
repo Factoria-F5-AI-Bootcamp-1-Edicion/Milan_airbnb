@@ -17,9 +17,29 @@ import scipy.stats as stats
 #Ruta del archivo contenedor del DATASET
 PATH_DATA= "milan_airbnb.csv"
 
-
+st.image('sidebar.png')
 # Titulo del dashboard
 st.title("Alojamientos Airbnb En Milan")
+page = """
+<head>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<head>
+<body>
+<hr>
+<h4>Autores</h4>
+<ul class="list-group">
+  <li class="list-group-item">Nayare</li>
+  <li class="list-group-item">Anghie</li>
+  <li class="list-group-item">Javier</li>
+  <li class="list-group-item">Sebastian</li>
+
+</ul>
+<hr>
+<br>
+</body>
+"""
+st.markdown(page, unsafe_allow_html=True)
+
 
 #Descripción de lo analizado
 st.write("A continuación mostramos algunos gráficos y conclusiones que hemos podido extraer, con los datos proporcionados, sobre el alquiler de alojamientos en Milán a través de la APP AirBnB. El objetivo es encontrar patrones relevantes de cara al alquiler de viviendas con fines vacacionales.")
@@ -53,6 +73,7 @@ st.title("Panel de visualizacion")
 
 
 if st.checkbox("Selecciona para mostrar DataSet utilizado : "):
+
     st.header("DataSet analizado")
     st.write("Las variables que encontramos en el Dataset son:")
     st.components.v1.html(f"""<p>Estas son las variables por entrada que contiene este dataset:  <ul>
@@ -73,7 +94,9 @@ if st.checkbox("Selecciona para mostrar DataSet utilizado : "):
     <li><b>availability_365=</b> Días disponibles al año</li>
     </ul></p>""",scrolling=True)
     
-    st.dataframe(data_map)
+    st.dataframe(df_cat.drop(['latitude','longitude'],axis=1))
+    st.markdown("Se eliminaron las columnas de host_id, host_name y name por considerarla que no son variables que influyan en nuestra salida")
+
 
 
 # RADIO ELECCIÓN TIPO VIVIENDA
@@ -81,8 +104,10 @@ tipo_visualizacion = st.sidebar.radio(
      "Tipo de visualizacion",
      ("Informacion","Mostrar mapa", "Mostrar graficos"))
 
+st.sidebar.image('sidebar.png')
 
 fs.menu_lateral(df,tipo_visualizacion, data_map, df_cat)
+
 
 
 
