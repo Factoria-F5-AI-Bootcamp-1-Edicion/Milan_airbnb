@@ -164,13 +164,23 @@ def filter_price(data):
 
 def menu_lateral(data, tipo, data_map, df_cat):
 
-    if tipo == "Mostrar graficos":     
+    if tipo == "Mostrar graficos":
+        st.header("Precio por barrio")     
         show_barrio(data)
+        st.markdown("La mayoría de precios en todos los barrios rondan los 100€ la noche. En Baggio, Bruzzano, Cantalupa y Quintosole (barrios periféricos de Milán) los precios están por debajo de 50€ la noche.Como ecepción, en Cascina Triulza-Expo, los precios son muy altos.")
+        st.header("Viviendas según tipo de alojamiento, por barrio")
         hist_price(data)
+        st.markdown("Entire home/apt (vivienda completa/apartamento), en naranja, predomina como tipo de vivienda más presente en Milán. El segundo tipo de alojamiento más predominante es Private room y también se puede ver que los barrios con más alojamientos son: Buenos Aires - Venezia, Duomo y Navigli, barrios del centro de la ciudad. Los barrios con menos alojamientos se situan a las afueras de la ciudad como por ejemplo en: Cascina Triulza - Expo., mientras que los barrios con más alojamientos son los del centro.")
+        st.header("Disponibilidad de los 10 barrios con más reviews")
         show_barriosreviews(df_cat)
+        st.markdown("Vemos entonces que los barrios con más reviews tienen una disponibilidad media por debajo de los 175 días.")
+        st.header("Cantidad de viviendas según número de reviews y rangos de precios.")
         show_reviewsprice(df_cat)
+        st.markdown("Las viviendas que tienen mayor numero de reseñas son las viviendas de valor menor a 300 euros (10971) , las cuales tienen una cantidad de reseñas de 1 a 50, aunque hay 5062 viviendas que tienen 0 reseñas.")
+        st.header("Mapa de calor, correlaciones")
         heat_map(data)
-        price_dist(data)
+        st.markdown("No hay mucha relación entre las variables de este DataSet.")
+
         
     if tipo == "Mostrar mapa":
        #Cargar mapa
@@ -194,7 +204,6 @@ def show_priceneig(df):
 
 
 def show_typeroom(data):
-    st.subheader("Precio por tipo de vivienda")
     fig, ax = plt.subplots(ncols=1, figsize=(18,10))
     fig= sns.catplot(x ="neighbourhood", hue ="room_type", kind ="count", data = data, aspect=2, height=10)
     ax=sns.set_theme(style="whitegrid")
@@ -202,7 +211,6 @@ def show_typeroom(data):
     st.pyplot(fig)
 
 def hist_price(dataf):
-    st.subheader("Distribucion de precios")
     fig, ax = plt.subplots(ncols=1, figsize=(18,7))
     ax=sns.set_theme(style="whitegrid")
     ax= sns.histplot(data=dataf, x="price", kde=True)
@@ -210,7 +218,6 @@ def hist_price(dataf):
     st.pyplot(fig)
 
 def show_reviewsprice(data):
-    st.subheader("Rango de cantidad de reseñas (filas) agrupadas por precio (columnas)")
     group = data.groupby(['number_of_reviews_cat', 'price_cut'])
     data_prices = pd.DataFrame(group.size().unstack())
     st.table(data_prices)
@@ -219,19 +226,17 @@ def show_reviewsprice(data):
     st.pyplot(fig)
 
 def show_barriosreviews(df_dispo_review):
-    st.subheader("Disponibilidad de los 10 barrios con mas reseñas")
-    fig = sns.catplot(x = "neighbourhood", y = "availability_365", kind = "bar", data=df_dispo_review.head(17))
+    fig3 = sns.catplot(x = "neighbourhood", y = "availability_365", kind = "bar", data =df_dispo_review.head(10))
     plt.xticks(rotation=90)
-    fig.set( xlabel = "Most rated neighbourhoods (descendent)", ylabel = "availability_365")
-    st.pyplot(fig)
+    fig3.set( xlabel = "Most rated neighbourhoods (descendent)", ylabel = "availability_365")
+    st.pyplot(fig3)
+
 # TODO: CORREGIR ERROR AL CARGAR VISUALIZACION
 def heat_map(data):
-    corr = data.corr('spearman')
-    mask = np.triu(np.ones_like(corr, dtype=bool))
-    f, ax = plt.subplots(figsize=(11, 9))
-    f = sns.heatmap(corr, mask=mask, vmax=1., vmin=-1., center=0, 
-    square=True, linewidths=.5, cbar_kws={"shrink": .5}, annot=True, ax = ax)
-    st.write(f)
+    mask = np.triu(np.ones_like(data.corr(), dtype=bool))
+    fig4, ax = plt.subplots(figsize=(11, 9))
+    sns.heatmap(data.corr(), mask=mask, vmax=1., vmin=-1., center=0, square=True, linewidths=.5, cbar_kws={"shrink": .5}, annot=True)
+    st.pyplot(fig4)
 # TODO: CORREGIR ERROR AL CARGAR VISUALIZACION
 def price_dist(data):
     f =stats.probplot(data["price"], dist="norm", plot=pylab)
@@ -240,7 +245,6 @@ def price_dist(data):
     st.pyplot(fig)
 
 def show_barrio(dataf):
-    st.subheader("Barrio discriminado por tipo de alojamiento")
     fig, ax = plt.subplots(ncols=1, figsize=(18,7))
     sns.set_theme(style="whitegrid")
     ax = sns.barplot(x="neighbourhood", y="price", data=dataf)

@@ -81,8 +81,6 @@ tipo_visualizacion = st.sidebar.radio(
      "Tipo de visualizacion",
      ("Informacion","Mostrar mapa", "Mostrar graficos"))
 
-# Para crear barra lateral
-st.sidebar.title("Filtrado de viviendas")
 
 fs.menu_lateral(df,tipo_visualizacion, data_map, df_cat)
 
