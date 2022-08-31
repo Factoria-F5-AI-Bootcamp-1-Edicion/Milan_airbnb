@@ -88,7 +88,17 @@ if tipo == "Hotel room":
 # SUBTÍTULO
 st.header("Gráficos relevantes")
 
-#GRÁFICOS
+
+# GRÁFICO NOCHES MÍNIMAS Y TIPO DE ALOJAMIENTO
+st.header("Tipo de alojamiento y mínimo de noches")
+fig, ax = plt.subplots(ncols=1)
+sns.set_theme(style="whitegrid")
+
+ax = sns.barplot(x="room_type", y="minimum_nights", data=df)
+plt.xticks(rotation=90)
+st.pyplot(fig)
+#Markdown para tipo de alojamiento y mínimo de noches
+st.markdown("Las viviendas con mayor reserva de noches se dan en Private room con más de 6 noches, seguido muy de cerca por Entire home/apt con más de 5 noches.")
 
 
 
