@@ -18,6 +18,7 @@ import streamlit as st
 from folium.plugins import HeatMap
 from streamlit_folium import st_folium
 import branca.colormap as cm
+import base64
 # Definicion de metodos estaticos
 
 def load_data(path):
@@ -30,6 +31,21 @@ def info_var(tipo,data):
         print(data[col].value_counts())
         print()
 
+#IMAGEN DE FONDO, MAPA DE MILÁN
+def add_bg_from_local(image_file):
+    with open(image_file, "rb") as image_file:
+        encoded_string = base64.b64encode(image_file.read())
+    st.markdown(
+    f"""
+    <style>
+    .stApp {{
+        background-image: url(data:image/{"png"};base64,{encoded_string.decode()});
+        background-size: cover
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+    )
 
 #------------------------AGRUPACIONES --------------------------
 def get_barrios(data):
@@ -95,7 +111,7 @@ def load_datamap(df, mapa):
         elif int(datan.iloc[i]['number']) > 200 :
             icono=folium.Icon(color="orange")
         else: 
-             icono=folium.Icon(color="white")
+             icono=folium.Icon(color="gray")
         folium.Marker([latitud, longitud],tooltip = titulo, popup=info, icon=icono).add_to(mapa)
     #Leyenda del mapa
     
@@ -168,33 +184,34 @@ def filter_per_minmax(data, min,max,column):
 # ------------------------- MENU LATERAL --------------------------------------------------
 
 def menu_lateral(data, tipo, data_map, df_cat):
-    if tipo == "Informacion":
+    if tipo == "Información":
         if st.checkbox('Ver mapa de correlaciones'):
             st.header("Mapa de calor, correlaciones")
             heat_map(data)
             st.markdown("No hay mucha relación entre las variables de este DataSet.")
-    st.header("Hipotesis")
-
-    st.components.v1.html(f"""
-    <ul>
-    <li> El barrio influye en el precio?</li>
-    <li> Cuales son los tipos de alojamientos mas alquilados?</li>
-    <li> El numero de hospedados tiene relacion con el tipo de vivienda?</li>
-    <li> Cuales son las fechas de mayor alquiler?</li>
-    <li> Las viviendas mas caras son las que tienen mas reseñas?</li>
-    </ul>""", height = 150
-    )
-    st.header("Conclusiones")
-    st.components.v1.html(f"""
-    <h3><ol>
-    <li> Los barrios con más actividad serían los localizados en el centro de la ciudad
-    con un precio medio por debajo de 50 euros, donde también están los más caros. </li>
-    <li>El tipo de alojamiento más ofertado es el de los apartamentos completos.</li>
-    <li>Al principio teníamos un concepto diferente del "calculated_host_listings_count". Ahora ya sabemos que es el número de alojamientos del mismo dueño</li>
-    <li> La calidad de los datos no nos permiten resolver esta hipótesis de las fechas de mayor alquiler<li>
-    </ol></h3>""",height = 300
-    )
-    if tipo == "Mostrar graficos":
+        st.header("Hipótesis")
+        st.components.v1.html(f"""
+        <ul>
+        <li> ¿El barrio influye en el precio?</li>
+        <li> ¿Cuáles son los tipos de alojamientos más alquilados?</li>
+        <li> ¿El número de hospedados tiene relación con el tipo de vivienda?</li>
+        <li> ¿Cuáles son las fechas de mayor alquiler?</li>
+        <li> ¿Las viviendas más caras son las que tienen más reseñas?</li>
+        </ul>""", height = 150
+         )
+        st.header("Conclusiones")
+        st.components.v1.html(f"""
+        <h3><ol>
+    
+        <li> Tras quitar los outliers, correspondiente a viviendas céntricas, nos quedamos con viviendas con un rango
+        de precios menores a 300 euros. El precio medio de las viviendas es de 85 euros</li>
+        <li>Los barrios con más actividad serían los localizados en el centro de la ciudad, los cuales son los de mayor precio.</li>
+        <li>El tipo de alojamiento más ofertado es el de los apartamentos completos.</li>
+        <li>Al principio teníamos un concepto diferente del "calculated_host_listings_count". Ahora ya sabemos que es el número de alojamientos del mismo dueño</li>
+        <li> La calidad de los datos no nos permiten resolver esta hipótesis de las fechas de mayor alquiler<li>
+        </ol></h3>""",height = 300
+        )
+    if tipo == "Mostrar gráficos":
         st.header("Distribucion de precios")
         hist_price(data)
         st.markdown("Se ha decidido a analizar un rango de precios hasta 300 euros por ser donde se concentra la mayor cantidad de viviendas (17454 de las 18322 viviendas totales).")
@@ -203,6 +220,22 @@ def menu_lateral(data, tipo, data_map, df_cat):
         st.markdown("La media de precios ronda los 85 euros por noche. En los barrios Baggio, Bruzzano, Cantalupa y Quintosole (barrios periféricos de Milán) los precios están por debajo de 50€ la noche. Como excepción, en el barrio periférico de  Cascina Triulza-Expo, el precio de las viviendas supera los 200 euros.")
         st.header("Viviendas según tipo de alojamiento, por barrio")
         show_typeroom(data)
+         # GRÁFICO NOCHES MÍNIMAS Y TIPO DE ALOJAMIENTO
+        st.header("Tipo de alojamiento y mínimo de noches")
+        fig, ax = plt.subplots(ncols=1)
+        sns.set_theme(style="whitegrid")
+        ax = sns.barplot(x="room_type", y="minimum_nights", data=data)
+        plt.xticks(rotation=90)
+        st.pyplot(fig)
+        #Markdown para tipo de alojamiento y mínimo de noches
+        st.markdown("Las viviendas con mayor reserva de noches se dan en Private room con más de 6 noches, seguido muy de cerca por Entire home/apt con más de 5 noches.")
+        st.header("Cantidad de tipos de alojamiento")
+        fig, ax = plt.subplots(ncols=1, figsize=(12,7))
+        sns.set_theme(style="whitegrid")
+        ax = sns.barplot(x=["Entire home/apt", "Private room", "Shared room", "Hotel room"], y=[13605, 4376, 267, 74], data=data)
+        st.pyplot(fig)
+        st.markdown("Amplia mayoría de casas y apartamentos completos. El tipo Hotel room tiene una presencia prácticamente testimonial")
+
         st.markdown("Entire home/apt (vivienda completa/apartamento), en naranja, predomina como tipo de vivienda más presente en Milán. El segundo tipo de alojamiento más predominante es Private room y también se puede ver que los barrios con más alojamientos son: Buenos Aires - Venezia, Duomo y Navigli, barrios del centro de la ciudad. Los barrios con menos alojamientos se situan a las afueras de la ciudad como por ejemplo en: Cascina Triulza - Expo., mientras que los barrios con más alojamientos son los del centro.")
         st.header("Disponibilidad de los 10 barrios con más reviews")
         show_barriosreviews(df_cat)
@@ -210,14 +243,26 @@ def menu_lateral(data, tipo, data_map, df_cat):
         st.header("Cantidad de viviendas según número de reviews y rangos de precios.")
         show_reviewsprice(df_cat)
         st.markdown("Las viviendas que tienen mayor numero de reseñas son las viviendas de valor menor a 300 euros (10971) , las cuales tienen una cantidad de reseñas de 1 a 50, aunque hay 5062 viviendas que tienen 0 reseñas.")  
+       
+
     if tipo == "Mostrar mapa":
        #Cargar mapa
         mapa = load_map(data_map)
         load_datamap(data_map,mapa)
         heatmap_map(mapa,data_map)
+
         #fs.load_datamap(data_map,mapa)
         # Renderizar mapa
+        st.header("Mapa interactivo de calor por barrios")
         st_folium(mapa, width=800)
+        st.components.v1.html(f"""
+        <p>Aquí se muestra un mapa de calor con distribución de viviendas , clasificado por barrios
+        Los puntos de interes de <font color ="red">color rojo</font> indican barrios con mas de 400 viviendas ofertadas
+        Los puntos de interes de <font color ="orange">color naranja</font> indican barrios que tienen entre 200 y 400 viviendas ofertadas
+        Los puntos de interes de <font color ="gray">color gris</font> indican barrios con menos de 200 viviendas ofertadas
+        </p>
+        """,height = 300
+        )
 
 
 # ------------------------- GRAFICOS --------------------------------------------------
@@ -276,21 +321,21 @@ def price_dist(data):
 
 def show_barrio(dataf):
     fig, ax = plt.subplots(ncols=1, figsize=(18,7))
-    filtro =  st.radio(
-     "Ingrese rango de precios a filtrar",
-     ("0-25","25-50", "50-75","75-100","100-150","150-300"))
-    if filtro == "0-25":
-        dataf = filter_per_minmax(dataf,0,25,'price')
-    elif filtro == "25-50":
-        dataf =filter_per_minmax(dataf,26,50,'price')
-    elif filtro == "50-75":
-        dataf =filter_per_minmax(dataf,51,75,'price')
-    elif filtro == "75-100":
-        dataf =filter_per_minmax(dataf,76,100,'price')
-    elif filtro == "100-150":
-        dataf =filter_per_minmax(dataf,101,150,'price')
-    elif filtro == "150-300":
-        dataf =filter_per_minmax(dataf,151,300,'price')
+    # filtro =  st.radio(
+    #  "Ingrese rango de precios a filtrar",
+    #  ("0-25","25-50", "50-75","75-100","100-150","150-300"))
+    # if filtro == "0-25":
+    #     dataf = filter_per_minmax(dataf,0,25,'price')
+    # elif filtro == "25-50":
+    #     dataf =filter_per_minmax(dataf,26,50,'price')
+    # elif filtro == "50-75":
+    #     dataf =filter_per_minmax(dataf,51,75,'price')
+    # elif filtro == "75-100":
+    #     dataf =filter_per_minmax(dataf,76,100,'price')
+    # elif filtro == "100-150":
+    #     dataf =filter_per_minmax(dataf,101,150,'price')
+    # elif filtro == "150-300":
+    #     dataf =filter_per_minmax(dataf,151,300,'price')
     sns.set_theme(style="whitegrid")
     ax = sns.barplot(x="neighbourhood", y="price", data=dataf)
     plt.xticks(rotation=90)
@@ -330,32 +375,3 @@ def transform_log(data, column):
     sns.histplot(x=log, kde=True)
     stats.probplot(data[column], dist="norm", plot=pylab)
     pylab.show()
-
-
-# Añadir marcadores 
-# ==============================================================================
-# for row in estaciones_fuel.itertuples():
-#     folium.Marker(
-#       location = [row.lat, row.lon],
-#       popup = row.tag_value,
-#    ).add_to(mapa)
-# mapa
-
-#folium.Circle(
- #     location = centro_madrid,
-  #    radius = 8_000, # metros
-   #   popup = '10 km radius',
-   #   fill = True,
-   #   color = '#B22222'
-   #).add_to(mapa)
-
-# Filtrado de elementos por distancia
-# ==============================================================================
-def price_filter(price, data):
-    df = data.cut()
-    pass
-
-# Cálculo de distancia al centro de Madrid
-#estaciones_fuel['distancias'] = estaciones_fuel.apply(lambda x: price_filter((price, x.lon), centro_madrid),axis = 1)
-# Filtrado de las que están a menos de 8 km del centro de Madrid
-#estaciones_fuel = estaciones_fuel[estaciones_fuel['distancias'] < 8]

@@ -17,9 +17,10 @@ import scipy.stats as stats
 #Ruta del archivo contenedor del DATASET
 PATH_DATA= "milan_airbnb.csv"
 
-st.image('sidebar.png')
+fs.add_bg_from_local('plano_milan_02.png')  
+
 # Titulo del dashboard
-st.title("Alojamientos Airbnb En Milan")
+st.title("Alojamientos Airbnb en Milán")
 page = """
 <head>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
@@ -97,19 +98,16 @@ if st.checkbox("Selecciona para mostrar DataSet utilizado : "):
     st.dataframe(df_cat.drop(['latitude','longitude'],axis=1))
     st.markdown("Se eliminaron las columnas de host_id, host_name y name por considerarla que no son variables que influyan en nuestra salida")
 
-
+st.sidebar.image('sidebar.png')
 
 # RADIO ELECCIÓN TIPO VIVIENDA
 tipo_visualizacion = st.sidebar.radio(
-     "Tipo de visualizacion",
-     ("Informacion","Mostrar mapa", "Mostrar graficos"))
+     "Tipo de visualización",
+     ("Información","Mostrar mapa", "Mostrar gráficos"))
 
-st.sidebar.image('sidebar.png')
+
 
 fs.menu_lateral(df,tipo_visualizacion, data_map, df_cat)
-
-
-
 
 
 
